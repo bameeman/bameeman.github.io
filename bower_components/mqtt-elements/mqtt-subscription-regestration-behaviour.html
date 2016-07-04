@@ -1,0 +1,4 @@
+<html><head><link rel="import" href="../polymer/polymer.html">
+
+
+<script>!function(t){var i=t.MqttElements=t.MqttElements||{};i.MqttSubscriptionRegestrationBehaviour={properties:{_parentConnection:{type:Object}},attached:function(){this.fire("mqtt-subscription-register",{topic:this.topic,qos:this.qos})},detached:function(){this._parentConnection&&this._parentConnection.fire("mqtt-subscription-unregister",{target:this})}}}(window);</script></head><body></body></html>

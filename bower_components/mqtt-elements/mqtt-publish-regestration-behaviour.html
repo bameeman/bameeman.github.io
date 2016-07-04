@@ -1,0 +1,5 @@
+<html><head><link rel="import" href="../polymer/polymer.html">
+
+
+
+<script>!function(t){var e=t.MqttElements=t.MqttElements||{};e.MqttPublishRegestrationBehaviour={properties:{_parentConnection:{type:Object}},attached:function(){this.fire("mqtt-publish-register",{topic:this.topic,qos:this.qos})},detached:function(){this._parentConnection&&this._parentConnection.fire("mqtt-publish-unregister",{target:this})}}}(window);</script></head><body></body></html>

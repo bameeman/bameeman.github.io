@@ -1,0 +1,12 @@
+<html><head><link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="mqtt-publish-regestration-behaviour.html">
+
+
+
+</head><body><dom-module id="mqtt-publish">
+  <template>
+  </template>
+</dom-module>
+
+<script>"use strict";!function(t){var i=t.MqttElements=t.MqttElements||{};i.MqttPublish=Polymer({is:"mqtt-publish",properties:{auto:{type:Boolean,value:!1},qos:{type:Number,value:0},topic:{type:String},payload:{type:Object,value:{}},retained:{type:Boolean,value:!1},published:{type:Boolean,value:!1,readOnly:!0}},behaviors:[i.MqttPublishRegestrationBehaviour],observers:["_propertiesChanged(topic, payload, qos, retained, _parentConnection)"],_propertiesChanged:function(t,i,e,s,o){this.auto&&t&&i&&this._parentConnection&&this.publish()},publish:function(){this.topic&&this.topic.length>0&&this.payload&&this.payload.length>0&&this._parentConnection&&(this._setPublished(!1),this._parentConnection.publish(this.topic,this.payload,this.qos,this.retained,this._handelPublicationPublished.bind(this)))},_handelPublicationPublished:function(){this._setPublished(!0),this.fire("mqtt-publication-published",{qos:this.qos,topic:this.topic,payload:this.payload,retained:this.retained})}})}(window);</script>
+</body></html>

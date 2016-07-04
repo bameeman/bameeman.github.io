@@ -1,0 +1,13 @@
+<html><head><link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="mqtt-subscription-regestration-behaviour.html">
+
+
+
+
+</head><body><dom-module id="mqtt-subscription">
+  <template>
+  </template>
+</dom-module>
+
+<script>"use strict";!function(e){var s=e.MqttElements=e.MqttElements||{};s.MqttSubscription=Polymer({is:"mqtt-subscription",properties:{lastMessage:{type:Object,readOnly:!0,notify:!0},messages:{type:Array,readOnly:!0,notify:!0,value:function(){return[]}},numberOfMessages:{type:Number,value:1,observer:"_numberOfMessagesChanged"},payloadType:{type:String,value:"String",observer:"_payloadTypeChanged"},qos:{type:Number,value:0},subscribed:{type:Boolean,readOnly:!0,notify:!0,value:!1},topic:{type:String},payloadParseFunction:{type:Function,value:String.fromCharCode},_handelSubscriptionSubscribedFunc:{type:Function,readOnly:!0,value:function(){return this._handelSubscriptionSubscribed.bind(this)}},_handelMessageFunc:{type:Function,readOnly:!0,value:function(){return this._handelMessage.bind(this)}}},behaviors:[s.MqttSubscriptionRegestrationBehaviour],_numberOfMessagesChanged:function(e,s){e<=0&&(console.error("numberOfMessages must be higher than 0, setting back to 1"),this.numberOfMessages=1)},_payloadTypeChanged:function(e,s){switch(e){case"Custom":break;case"Unknown":this.payloadParseFunction=function(){};break;case"String":this.payloadParseFunction=String.fromCharCode;break;default:this.payloadParseFunction=String.fromCharCode}},_handelSubscriptionSubscribed:function(){this._setSubscribedAndFire(!0,"mqtt-subscription-subscribed")},_handelSubscriptionUnsubscribed:function(){this._setSubscribedAndFire(!1,"mqtt-subscription-unsubscribed")},_setSubscribedAndFire:function(e,s){this._setSubscribed(e),this.fire(s,{topic:this.topic,qos:this.qos})},_parseMessage:function(e){return this.payloadParseFunction.apply(null,e.message.payload)},_storeMessage:function(e){e.parsedPayload=this._parseMessage(e),this.messages.length>=this.numberOfMessages&&this.shift("messages"),this.push("messages",e),this._setLastMessage(e),this.fire("mqtt-subscription-message",e)},_handelMessage:function(e,s){this._storeMessage(e),this._parentConnection._notifySubscriptionChanged(this),s&&s()}})}(window);</script>
+</body></html>
