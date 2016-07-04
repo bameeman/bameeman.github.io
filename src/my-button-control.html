@@ -1,0 +1,220 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+
+<link rel="import" href="../bower_components/mqtt-elements/mqtt-elements.html">
+
+
+<dom-module id="my-button-control">
+  <!-- Defines the element's style and local DOM -->
+  <template>
+    <style>
+    paper-fab {
+      margin-left: 10px;
+      margin-right: 10px;
+    }
+    .card {
+      box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
+      padding: 16px;
+      margin: 24px;
+      border-radius: 5px;
+      background-color: #fff;
+      color: #757575;
+    }
+      :host {
+        display: block;
+        padding: 16px;
+      }
+
+    </style>
+
+    <!--create mqtt-connection element-->
+    <mqtt-connection
+        id="connection"
+        url="[[url]]"
+        connected="{{connected}}"
+        client="{{client}}"
+        subscriptions="{{subscriptions}}"
+        options='{{options}}'
+        on-mqtt-message="_handelMqttMessage">
+
+      <!--create a mqtt subscription for every item in topics-->
+      <template is="dom-repeat" items="{{topics}}" as="t">
+        <mqtt-subscription topic="[[t.topic]]"
+                           number-of-messages="10"
+                           qos="[[t.qos]]"></mqtt-subscription>
+      </template>
+
+      <!--create mqtt-publish element to publish mqtt messages to the broker -->
+      <mqtt-publish id = "sendON"  topic="/jirawatIOT/mqttin" payload="ON" ></mqtt-publish>
+      <mqtt-publish id = "sendOFF" topic="/jirawatIOT/mqttin" payload="OFF"></mqtt-publish>
+
+
+      <mqtt-publish id = "fsend" topic="/jirawatIOT/hello" payload="this is easy" auto></mqtt-publish>
+    </mqtt-connection>
+
+
+
+    <div>
+      <h1>Light Control</h1>
+      <br />
+      <div class="card">
+            <paper-button class="card" raised on-tap="_sendMessageON">SendON</paper-button>
+            <paper-button class="card" raised on-tap="_sendMessageOFF">SendOFF</paper-button>
+      </div>
+
+      <br />
+      <br />
+      <div class="card">
+        <h3>Mqtt Config</h3>
+        <paper-button class="card" raised on-tap="connect">Connect</paper-button>
+        <paper-button class="card" raised on-tap="disconnect">Disconnect</paper-button><br />
+        Status is : <span id = "clicktag"> [[_connectionStatusToString(connected)]]</span>
+      </div>
+    </div>
+  </template>
+
+  <!-- Creates the element's prototype and registers it -->
+  <script>
+    Polymer({
+      is: 'my-button-control',
+      properties: {
+        route: Object,
+        clickvalue : String,
+        swstatus :{
+          type : Boolean,
+          value : false,
+          notify : true
+        },
+        status:{
+          type : Boolean,
+          value : "disconnect"
+        },
+                url: {
+                  type: String,
+                  value: "ws://iot.eclipse.org:80/ws",
+                },
+
+                topic: {
+                  type: String,
+                  value: "/jirawatIOT/mqttin",
+                },
+
+                messages: {
+                  type: Array,
+                  value: [],
+                },
+
+                topics: {
+                  type: Array,
+                  value: function () {
+                    return [];
+                  },
+                },
+
+                options: {
+                  type: Object,
+                  computed: "_computeOptions(username, password, clientId)",
+                },
+
+                username: {
+                  type: String,
+                },
+
+                password: {
+                  type: String,
+                },
+
+                clientId: {
+                  type: String,
+                }
+              },
+
+              observers: [],
+
+              _computeOptions: function (username, password, clientId) {
+                var _options = {
+                  protocolId: "MQTT",
+                  protocolVersion: 4,
+                  keepalive: 10,
+                  reconnectPeriod: 1000,
+                  clientId: "",
+                  encoding: "string",
+                };
+
+                if(username && username.length > 0 && password && password.length > 0) {
+                  _options.username = username;
+                  _options.password = password;
+                }
+
+                if(clientId && clientId.length > 0){
+                  _options.clientId = clientId;
+                }
+
+                return _options;
+              },
+
+              _showOptions: function () {
+                this.showOptions = !this.showOptions;
+              },
+
+              _sendMessage: function (event) {
+                console.log("publish");
+                //this.$.pub.publish();
+                this.$.fsend.publish();
+              },
+              _sendMessageON: function (event) {
+                console.log("publishON");
+                //this.$.pub.publish();
+                this.$.sendON.publish();
+              },
+              _sendMessageOFF: function (event) {
+                console.log("publishOFF");
+                //this.$.pub.publish();
+                this.$.sendOFF.publish();
+              },
+              _addSub: function () {
+                if(this.newSubTopic.length > 0) {
+                  this.push("topics", {topic: this.newSubTopic, qos: this.subQos});
+                }
+              },
+
+              _handelMqttMessage: function (event, message) {
+                if(message && message.topic) {
+                  this.push('messages', {
+                    topic: message.topic,
+                    message: String.fromCharCode.apply(null, message.message)
+                  });
+                }
+              },
+
+              disconnect: function () {
+                this.$.connection.disconnect();
+              },
+
+              connect: function () {
+                this.$.connection.connect();
+              },
+
+              _connectionStatusToString: function (status) {
+                if(status) {
+                  return "connected";
+                } else {
+                  return "disconnected";
+                }
+              },
+
+              _removeSubscription: function (event) {
+                // using the index of the subscriptions array only works because we have not changed the order of the
+                // subscriptions. Otherwise it would be nessesary to have some sort of ID for each subscription to easily map
+                // the subscription to the model.
+                var index = this.subscriptions.indexOf(event.model.sub)
+                this.splice("topics", index, 1);
+              },
+
+            });
+
+          </script>
+
+</dom-module>
